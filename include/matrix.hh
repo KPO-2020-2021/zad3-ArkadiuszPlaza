@@ -2,6 +2,7 @@
 
 #include "size.hh"
 #include "vector.hh"
+#include "rectangle.hh"
 #include <iostream>
 #include <cstdlib>
 
@@ -19,15 +20,70 @@ public:
 
     Matrix operator + (Matrix tmp);
 
+    Rectangle operator *(Rectangle Pr);
+void calculate(double angle);
+
+float EliminujGaussa_Wyznacznik();
+
+void rotation(Rectangle &Pr)
+{
+Pr=*this*Pr;
+}
     double  &operator () (unsigned int row, unsigned int column);
     
     const double &operator () (unsigned int row, unsigned int column) const;
 };
 
+float Matrix::EliminujGaussa_Wyznacznik()
+{
+
+        float mianownik;
+        float licznik;
+        float wyznacznik = 1;
+        Matrix tablica=*this;
+        for (int k = 0; k < SIZE - 1; k++)
+        {
+                mianownik = tablica(k,k);
+
+                for (int i = (1+k); i < SIZE; i++)
+                {
+                        licznik = tablica(i,k);
+
+
+                        for (int j = (0+k); j < SIZE; j++)
+                        {
+                                tablica(i,j) = tablica(i,j)-((licznik / mianownik)*tablica(k,j));
+                        }
+                }
+        }
+
+
+      for(int i =0 ; i<SIZE ;i++)
+        wyznacznik=wyznacznik*tablica(i,i);
+    return wyznacznik;
+
+}
+
 std::istream &operator>>(std::istream &in, Matrix &mat);
 
 std::ostream &operator<<(std::ostream &out, Matrix const &mat);
 
+   void Matrix::calculate(double angle)
+      {
+          angle=angle*M_PI/180;
+          value[0][0]=sin(angle);
+      value[0][1]=-cos(angle);
+        value[1][0]=cos(angle);
+          value[1][1]=sin(angle);
+      }
+
+ Rectangle Matrix::operator *(Rectangle Pr)
+    {
+        Rectangle wynik;
+        for(int i=0; i<4; i++)
+        wynik[i]=*this*Pr[i];
+        return wynik;
+    }
 /******************************************************************************
  |  Konstruktor klasy Matrix.                                                 |
  |  Argumenty:                                                                |
@@ -91,12 +147,12 @@ Vector Matrix::operator * (Vector tmp) {
 double &Matrix::operator()(unsigned int row, unsigned int column) {
 
     if (row >= SIZE) {
-        std::cout << "Error: Macierz jest poza zasiegiem"; 
+        throw "Error: Macierz jest poza zasiegiem"; 
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 
     if (column >= SIZE) {
-        std::cout << "Error: Macierz jest poza zasiegiem";
+        throw  "Error: Macierz jest poza zasiegiem";
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 
@@ -115,12 +171,12 @@ double &Matrix::operator()(unsigned int row, unsigned int column) {
 const double &Matrix::operator () (unsigned int row, unsigned int column) const {
 
     if (row >= SIZE) {
-        std::cout << "Error: Macierz jest poza zasiegiem";
+       throw "Error: Macierz jest poza zasiegiem";
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 
     if (column >= SIZE) {
-        std::cout << "Error: Macierz jest poza zasiegiem";
+       throw "Error: Macierz jest poza zasiegiem";
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 

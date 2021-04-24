@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <string>
-
+#include "rectangle.hh"
 #include "exampleConfig.h"
 #include "example.h"
 #include "vector.hh"
@@ -36,7 +36,7 @@
  * \param[in] StrmWy - strumien wyjsciowy, do ktorego maja zostac zapisane
  *                     kolejne wspolrzedne.
  * \param[in] Przesuniecie - ten parameter jest tylko po to, aby pokazać
- *                          mozliwosc zmiany wspolrzednych i prostokata
+ *                          mozliwosc zmiany wspolrzednych i Rectanglea
  *                          i zmiane jego polorzenia na okienku graficznym
  *                         rysownym przez gnuplota.
  * \retval true - gdy operacja zapisu powiodła się,
@@ -81,15 +81,13 @@ void PrzykladZapisuWspolrzednychDoStrumienia( std::ostream&     StrmWy,
  * \param[in] sNazwaPliku - nazwa pliku, do którego zostana zapisane
  *                          wspolrzędne punktów.
  * \param[in] Przesuniecie - ten parameter jest tylko po to, aby pokazać
- *                          mozliwosc zmiany wspolrzednych i prostokata
+ *                          mozliwosc zmiany wspolrzednych i Rectanglea
  *                          i zmiane jego polorzenia na okienku graficznym
  *                         rysownym przez gnuplota.
  * \retval true - gdy operacja zapisu powiodła się,
  * \retval false - w przypadku przeciwnym.
  */
-bool PrzykladZapisuWspolrzednychDoPliku( const char  *sNazwaPliku,
-                                         double       Przesuniecie
-                                       )
+bool zapisDoPliku( const char  *sNazwaPliku,Rectangle       Pr)
 {
   std::ofstream  StrmPlikowy;
 
@@ -100,7 +98,7 @@ bool PrzykladZapisuWspolrzednychDoPliku( const char  *sNazwaPliku,
     return false;
   }
 
-  PrzykladZapisuWspolrzednychDoStrumienia(StrmPlikowy, Przesuniecie);
+  StrmPlikowy<<Pr;
 
   StrmPlikowy.close();
   return !StrmPlikowy.fail();
@@ -133,40 +131,94 @@ int main() {
   std::cout << "Matrix - konstruktor parametryczny:\n" << tmpM2 << std::endl;
 
     PzG::LaczeDoGNUPlota  Lacze;  // Ta zmienna jest potrzebna do wizualizacji
-                                // rysunku prostokata
+                                // rysunku Rectanglea 
 
    //-------------------------------------------------------
-   //  Wspolrzedne wierzcholkow beda zapisywane w pliku "prostokat.dat"
+   //  Wspolrzedne wierzcholkow beda zapisywane w pliku "Rectangle.dat"
    //  Ponizsze metody powoduja, ze dane z pliku beda wizualizowane
    //  na dwa sposoby:
    //   1. Rysowane jako linia ciagl o grubosci 2 piksele
    //
-  Lacze.DodajNazwePliku("../datasets/prostokat.dat",PzG::RR_Ciagly,2);
+  Lacze.DodajNazwePliku("../datasets/Rectangle.dat",PzG::RR_Ciagly,2);
    //
    //   2. Rysowane jako zbior punktow reprezentowanych przez kwadraty,
    //      których połowa długości boku wynosi 2.
    //
-  Lacze.DodajNazwePliku("../datasets/prostokat.dat",PzG::RR_Punktowy,2);
+  Lacze.DodajNazwePliku("../datasets/Rectangle.dat",PzG::RR_Punktowy,2);
    //
    //  Ustawienie trybu rysowania 2D, tzn. rysowany zbiór punktów
    //  znajduje się na wspólnej płaszczyźnie. Z tego powodu powoduj
    //  jako wspolrzedne punktow podajemy tylko x,y.
    //
+char symbol;
   Lacze.ZmienTrybRys(PzG::TR_2D);
+    double V2[] = {15.0, 25.0};
+Vector w1(V2);
+Rectangle Pr(w1,150,150);
+Pr.side_lenght();
+double kat;
+int ile;
+  if (!zapisDoPliku("../datasets/Rectangle.dat",Pr)) return 1;
+  Lacze.Rysuj(); 
+    std::cout << "o - obrot prostokata o zadany kat" << std::endl;
+    std::cout << "p - przesuniecie prostokata o zadany wektor" << std::endl;
+    std::cout << "w - wyswietlenie wspolrzednych wierzcholkow" << std::endl;
+    std::cout << "m - wyswietl menu" << std::endl;
+    std::cout << "k - koniec dzialania programu" << std::endl;
+while (1)
+{
+  std::cout << "Twoj wybor? (m - menu) >" << std::endl;
+  std::cin>>symbol;
 
-  PrzykladZapisuWspolrzednychDoStrumienia(std::cout,0);
-  if (!PrzykladZapisuWspolrzednychDoPliku("../datasets/prostokat.dat",0)) return 1;
-  Lacze.Rysuj(); // <- Tutaj gnuplot rysuje, to co zapisaliśmy do pliku
-  std::cout << "Naciśnij ENTER, aby kontynuowac" << std::endl;
-  std::cin.ignore(100000,'\n');
-   //----------------------------------------------------------
-   // Ponownie wypisuje wspolrzedne i rysuje prostokąt w innym miejscu.
-   //
-  PrzykladZapisuWspolrzednychDoStrumienia(std::cout,50);
-  if (!PrzykladZapisuWspolrzednychDoPliku("../datasets/prostokat.dat",50)) return 1;
-  Lacze.Rysuj(); // <- Tutaj gnuplot rysuje, to co zapisaliśmy do pliku
-  std::cout << "Naciśnij ENTER, aby kontynuowac" << std::endl;
-  std::cin.ignore(100000,'\n');
+  switch (symbol)
+  {
+    case 'o':
+    {
+      Matrix tmpM3;
+       std::cout << "Podaj wartosc kata obrotu w stopniach" << std::endl;
+        std::cin>>kat;
+       std::cout << "Ile razy operacja obrotu ma byc powtorzona?" << std::endl;
+       std::cin>>ile;
+        tmpM3.calculate(kat);
+       for(int i=0; i<ile; i++)
+          tmpM3.rotation(Pr);
+    }
+    break;
+        case 'p':  
+        {
+
+                   std::cout << " Wprowadz wspolrzedne wektora translacji w postaci dwoch liczbtzn. wspolrzednej x oraz wspolrzednej y" << std::endl;
+           double V2[2];
+           for(int i=0; i<2;i++)
+                std::cin>>V2[i];
+Vector w1(V2);
+       
+        Pr.translate(w1);
+
+        }
+    break;
+        case 'w':
+ std::cout<<Pr;
+    break;
+        case 'm':
+          std::cout << "o - obrot prostokata o zadany kat" << std::endl;
+    std::cout << "p - przesuniecie prostokata o zadany wektor" << std::endl;
+    std::cout << "w - wyswietlenie wspolrzednych wierzcholkow" << std::endl;
+    std::cout << "m - wyswietl menu" << std::endl;
+    std::cout << "k - koniec dzialania programu" << std::endl;
+    break;
+        case 'k':
+        return 0;
+    break;
+  default:
+    break;
+  }
+    if (!zapisDoPliku("../datasets/Rectangle.dat",Pr)) return 1;
+  Lacze.Rysuj(); 
+   Pr.side_lenght();
+}
+
+
 
   // Z bazy projektu-wydmuszki Boiler Plate C++:
   // Bring in the dummy class from the example source,
